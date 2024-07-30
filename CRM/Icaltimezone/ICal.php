@@ -88,7 +88,7 @@ WHERE ce.id = %1";
       foreach (['start_date', 'end_date', 'registration_start_date', 'registration_end_date'] as $dateField) {
         if (!empty($eventInfo[$dateField])) {
           $dateObj = new DateTime($eventInfo[$dateField], $defaultTimezone);
-          $eventInfo[$dateField] = self::convertDateToLocalTime($dateObj, 'Y-m-d H:i:s', $userTimeZone);
+          $eventInfo[$dateField] = self::convertDateToLocalTime($dateObj, $userTimeZone, 'Y-m-d H:i:s');
         }
       }
     }
@@ -131,7 +131,7 @@ WHERE ce.id = %1";
    * @param string $format
    * @return string
    */
-  public static function convertDateToLocalTime($dateObject, $format = 'YmdHis', $userTimeZone) {
+  public static function convertDateToLocalTime($dateObject, $userTimeZone, $format = 'YmdHis') {
     $systemTimeZone = new DateTimeZone($userTimeZone);
     $dateObject->setTimezone($systemTimeZone);
     return $dateObject->format($format);
