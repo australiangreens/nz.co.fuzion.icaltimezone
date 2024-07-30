@@ -1,0 +1,9 @@
+{
+  "name": "australian_greens/nz.co.fuzion.icaltimezone",
+  "type": "civicrm-ext",
+  "description": "CiviCRM extension to improve iCal timezone support",
+  "require": {
+    "composer/installers": "^1.6 || ^2"
+  }
+}
+
