@@ -60,7 +60,29 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
     $config = CRM_Core_Config::singleton();
 
     $info = CRM_Event_BAO_Event::getCompleteInfo($start, $type, $id, $end);
-    $defaultTimezone = new DateTimeZone(date_default_timezone_get());
+    // AG: use state/territory to set $defaultTimezone appropriately
+    $sql = "
+SELECT
+  csp.abbreviation AS state
+FROM civicrm_event ce
+LEFT JOIN civicrm_loc_block clb ON clb.id = ce.loc_block_id
+LEFT JOIN civicrm_address ca ON ca.id = clb.address_id
+LEFT JOIN civicrm_state_province csp ON csp.id = ca.state_province_id
+WHERE ce.id = %1";
+    $params = [1 => [$id, 'Integer']];
+    $state = CRM_Core_DAO::executeQuery($sql, $params);
+
+    $eventTimezones = [
+      'ACT' => 'Australia/Canberra',
+      'NSW' => 'Australia/Sydney',
+      'NT'  => 'Australia/Darwin',
+      'QLD' => 'Australia/Brisbane',
+      'SA'  => 'Australia/Adelaide',
+      'TAS' => 'Australia/Hobart',
+      'VIC' => 'Australia/Melbourne',
+      'WA'  => 'Australia/Perth',
+    ];
+    $defaultTimezone = new DateTimeZone($eventTimezones[$state] ?? date_default_timezone_get());
 
     foreach ($info as &$eventInfo) {
       foreach (['start_date', 'end_date', 'registration_start_date', 'registration_end_date'] as $dateField) {
