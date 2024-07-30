@@ -16,6 +16,13 @@
  */
 class CRM_Icaltimezone_ICal extends CRM_Core_Page {
 
+  // AG: PHP 8+ requires callback functions to be declared statically.
+  // So we create a static wrapper method:
+  public static function callback() {
+    $instance = new self();
+    return $instance->run();
+  }
+
   /**
    * Heart of the iCalendar data assignment process. The runner gets all the meta
    * data for the event and calls the  method to output the iCalendar
@@ -23,7 +30,7 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
    * Else outputs iCalendar format per IETF RFC2445. Page param true means send
    * to browser as inline content. Else, we send .ics file as attachment.
    */
-  public static function run() {
+  public function run() {
     $id = CRM_Utils_Request::retrieveValue('id', 'Positive', NULL, FALSE, 'GET');
     $type = CRM_Utils_Request::retrieveValue('type', 'Positive', 0);
     $start = CRM_Utils_Request::retrieveValue('start', 'Positive', 0);

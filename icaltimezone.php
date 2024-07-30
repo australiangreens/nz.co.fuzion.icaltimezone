@@ -36,7 +36,7 @@ function icaltimezone_civicrm_enable() {
 function icaltimezone_civicrm_alterMenu(&$items) {
   $items['civicrm/event/ical']['page_callback'] = [
     'CRM_Icaltimezone_ICal',
-    'run',
+    'callback',
   ];
 }
 
