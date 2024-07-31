@@ -16,6 +16,13 @@
  */
 class CRM_Icaltimezone_ICal extends CRM_Core_Page {
 
+  // AG: PHP 8+ requires callback functions to be declared statically.
+  // So we create a static wrapper method:
+  public static function callback() {
+    $instance = new self();
+    return $instance->run();
+  }
+
   /**
    * Heart of the iCalendar data assignment process. The runner gets all the meta
    * data for the event and calls the  method to output the iCalendar
@@ -60,13 +67,35 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
     $config = CRM_Core_Config::singleton();
 
     $info = CRM_Event_BAO_Event::getCompleteInfo($start, $type, $id, $end);
-    $defaultTimezone = new DateTimeZone(date_default_timezone_get());
+    // AG: use state/territory to set $defaultTimezone appropriately
+    $sql = "
+SELECT
+  csp.abbreviation AS state
+FROM civicrm_event ce
+LEFT JOIN civicrm_loc_block clb ON clb.id = ce.loc_block_id
+LEFT JOIN civicrm_address ca ON ca.id = clb.address_id
+LEFT JOIN civicrm_state_province csp ON csp.id = ca.state_province_id
+WHERE ce.id = %1";
+    $params = [1 => [$id, 'Integer']];
+    $state = CRM_Core_DAO::singleValueQuery($sql, $params);
+
+    $eventTimezones = [
+      'ACT' => 'Australia/Canberra',
+      'NSW' => 'Australia/Sydney',
+      'NT'  => 'Australia/Darwin',
+      'QLD' => 'Australia/Brisbane',
+      'SA'  => 'Australia/Adelaide',
+      'TAS' => 'Australia/Hobart',
+      'VIC' => 'Australia/Melbourne',
+      'WA'  => 'Australia/Perth',
+    ];
+    $defaultTimezone = new DateTimeZone($eventTimezones[$state] ?? date_default_timezone_get());
 
     foreach ($info as &$eventInfo) {
       foreach (['start_date', 'end_date', 'registration_start_date', 'registration_end_date'] as $dateField) {
         if (!empty($eventInfo[$dateField])) {
           $dateObj = new DateTime($eventInfo[$dateField], $defaultTimezone);
-          $eventInfo[$dateField] = self::convertDateToLocalTime($dateObj, 'Y-m-d H:i:s', $userTimeZone);
+          $eventInfo[$dateField] = self::convertDateToLocalTime($dateObj, $userTimeZone, 'Y-m-d H:i:s');
         }
       }
     }
@@ -109,7 +138,7 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
    * @param string $format
    * @return string
    */
-  public static function convertDateToLocalTime($dateObject, $format = 'YmdHis', $userTimeZone) {
+  public static function convertDateToLocalTime($dateObject, $userTimeZone, $format = 'YmdHis') {
     $systemTimeZone = new DateTimeZone($userTimeZone);
     $dateObject->setTimezone($systemTimeZone);
     return $dateObject->format($format);
