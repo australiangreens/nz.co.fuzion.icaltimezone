@@ -35,6 +35,7 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
     $type = CRM_Utils_Request::retrieveValue('type', 'Positive', 0);
     $start = CRM_Utils_Request::retrieveValue('start', 'Positive', 0);
     $end = CRM_Utils_Request::retrieveValue('end', 'Positive', 0);
+    $gCalendar = CRM_Utils_Request::retrieveValue('gCalendar', 'Positive', 0);
 
     // We used to handle the event list as a html page at civicrm/event/ical - redirect to the new URL if that was what we requested.
     if (CRM_Utils_Request::retrieveValue('html', 'Positive', 0)) {
@@ -55,6 +56,7 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
       $type ? $urlParams['type'] = $type : NULL;
       $start ? $urlParams['start'] = $start : NULL;
       $end ? $urlParams['end'] = $end : NULL;
+      $gCalendar ? $urlParams['gCalendar'] = $gCalendar : NULL;
       CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/event/ical/gettimezone', $urlParams, FALSE, NULL, FALSE, TRUE));
     }
     $userTimeZone = $_GET['timezone'] ?? CRM_Core_Config::singleton()->userSystem->getTimeZoneString();
@@ -99,6 +101,11 @@ WHERE ce.id = %1";
         }
       }
     }
+
+    if ($gCalendar && count($info) === 1) {
+      return self::gCalRedirect($info);
+    }
+
     $template->assign('events', $info);
     $template->assign('timezone', $userTimeZone);
 
@@ -144,4 +151,57 @@ WHERE ce.id = %1";
     return $dateObject->format($format);
   }
 
+  /*
+   *
+   * Copying this function from CRM/Event/ICalendar.php in civicrm-core
+   * because it's a protected function and we cannot access it otherwise.
+   * It's necessary to ensure the "Add to Google Calendar" functionality
+   * works as designed on event info/registration pages.
+   */
+  protected static function gCalRedirect(array $events) {
+    $event = reset($events);
+
+    // Fetch the required Date TimeStamps
+    $start_date = date_create($event['start_date']);
+
+    // Google Requires that a Full Day event end day happens on the next Day
+    $end_date = ($event['end_date']
+      ? date_create($event['end_date'])
+      : date_create($event['start_date'])
+        ->add(DateInterval::createFromDateString('1 day'))
+        ->setTime(0, 0, 0)
+    );
+
+    $dates = $start_date->format('Ymd\THis') . '/' . $end_date->format('Ymd\THis');
+
+    $event_details = $event['description'];
+
+    // Add space after paragraph
+    $event_details = str_replace('</p>', '</p> ', $event_details);
+    $event_details = strip_tags($event_details);
+
+    // Truncate Event Description and add permalink if greater than 996 characters
+    if (strlen($event_details) > 996) {
+      if (preg_match('/^.{0,996}(?=\s|$_)/', $event_details, $m)) {
+        $event_details = $m[0] . '...';
+      }
+    }
+
+    $event_details .= "\n\n<a href=\"{$event['url']}\">" . ts('View %1 Details', [1 => $event['event_type']]) . '</a>';
+
+    $params = [
+      'action' => 'TEMPLATE',
+      'text' => strip_tags($event['title']),
+      'dates' => $dates,
+      'details' => $event_details,
+      'location' => str_replace("\n", "\t", $event['location']),
+      'trp' => 'false',
+      'sprop' => 'website:' . CRM_Utils_System::baseCMSURL(),
+      'ctz' => @date_default_timezone_get(),
+    ];
+
+    $url = 'https://www.google.com/calendar/event?' . CRM_Utils_System::makeQueryString($params);
+
+    CRM_Utils_System::redirect($url);
+  }
 }
