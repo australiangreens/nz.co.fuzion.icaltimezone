@@ -1,4 +1,4 @@
-{if isset($gCalendar)}
+{if ($gCalendar)}
 <h3>Add to Google Calendar</h3>
 
 <p>You will be redirected to Google Calendar shortly.</p>
