@@ -2,7 +2,7 @@
 <menu>
   <item>
      <path>civicrm/event/ical/gettimezone</path>
-     <title>ICalendar Download</title>
+     <title>Retrieving calendar</title>
      <page_callback>CRM_Icaltimezone_Page_TimezoneICal</page_callback>
      <access_arguments>view event info</access_arguments>
      <is_public>true</is_public>
