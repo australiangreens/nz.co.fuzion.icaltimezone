@@ -39,30 +39,3 @@ function icaltimezone_civicrm_alterMenu(&$items) {
     'callback',
   ];
 }
-
-// --- Functions below this ship commented out. Uncomment as required. ---
-
-/**
- * Implements hook_civicrm_preProcess().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_preProcess
- *
-
- // */
-
-/**
- * Implements hook_civicrm_navigationMenu().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
- *
-function icaltimezone_civicrm_navigationMenu(&$menu) {
-  _icaltimezone_civix_insert_navigation_menu($menu, 'Mailings', array(
-    'label' => E::ts('New subliminal message'),
-    'name' => 'mailing_subliminal_message',
-    'url' => 'civicrm/mailing/subliminal',
-    'permission' => 'access CiviMail',
-    'operator' => 'OR',
-    'separator' => 0,
-  ));
-  _icaltimezone_civix_navigationMenu($menu);
-} // */
