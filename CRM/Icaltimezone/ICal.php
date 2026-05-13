@@ -35,6 +35,7 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
     $type = CRM_Utils_Request::retrieveValue('type', 'Positive', 0);
     $start = CRM_Utils_Request::retrieveValue('start', 'Positive', 0);
     $end = CRM_Utils_Request::retrieveValue('end', 'Positive', 0);
+    $gCalendar = CRM_Utils_Request::retrieveValue('gCalendar', 'Positive', 0);
 
     // We used to handle the event list as a html page at civicrm/event/ical - redirect to the new URL if that was what we requested.
     if (CRM_Utils_Request::retrieveValue('html', 'Positive', 0)) {
@@ -55,6 +56,7 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
       $type ? $urlParams['type'] = $type : NULL;
       $start ? $urlParams['start'] = $start : NULL;
       $end ? $urlParams['end'] = $end : NULL;
+      $gCalendar ? $urlParams['gCalendar'] = $gCalendar : NULL;
       CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/event/ical/gettimezone', $urlParams, FALSE, NULL, FALSE, TRUE));
     }
     $userTimeZone = $_GET['timezone'] ?? CRM_Core_Config::singleton()->userSystem->getTimeZoneString();
