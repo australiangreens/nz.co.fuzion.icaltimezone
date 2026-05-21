@@ -70,7 +70,9 @@ class CRM_Icaltimezone_ICal extends CRM_Core_Page {
 
     $info = CRM_Event_BAO_Event::getCompleteInfo($start, $type, $id, $end);
     // AG: use state/territory to set $defaultTimezone appropriately
-    $sql = "
+    $state = NULL;
+    if ($id) {
+      $sql = "
 SELECT
   csp.abbreviation AS state
 FROM civicrm_event ce
@@ -78,8 +80,9 @@ LEFT JOIN civicrm_loc_block clb ON clb.id = ce.loc_block_id
 LEFT JOIN civicrm_address ca ON ca.id = clb.address_id
 LEFT JOIN civicrm_state_province csp ON csp.id = ca.state_province_id
 WHERE ce.id = %1";
-    $params = [1 => [$id, 'Integer']];
-    $state = CRM_Core_DAO::singleValueQuery($sql, $params);
+      $params = [1 => [$id, 'Integer']];
+      $state = CRM_Core_DAO::singleValueQuery($sql, $params);
+    }
 
     $eventTimezones = [
       'ACT' => 'Australia/Canberra',
